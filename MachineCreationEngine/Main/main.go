@@ -1,10 +1,10 @@
 package main
 
 import (
+	"docker"
 	"fmt"
-	"systemcaller"
 )
 
 func main() {
-	fmt.Println(systemcaller.RunSystemCommand("docker run --help"))
+	fmt.Println(docker.RunDockerfile("./Dockerfiles", "test.Dockerfile"))
 }

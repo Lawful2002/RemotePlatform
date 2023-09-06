@@ -15,12 +15,12 @@ func isDockerDaemonRunning() bool {
 	// Input: nil
 	// Output: bool -> whether the docker daemon is running
 	log.SetPrefix("docker daemon: ")
-	output, err := systemcaller.RunSystemCommand("ps")
+	output, err := systemcaller.RunSystemCommand("docker ps")
 	if err != nil {
 		log.Fatal(err)
 		return false
 	} else {
-		return strings.Contains(output, "not running")
+		return !strings.Contains(output, "not running")
 	}
 }
 
@@ -36,7 +36,7 @@ func isDockerContainerRunning(dump string) bool {
 	return !strings.Contains(dump, "Error response from daemon")
 }
 
-func buildDockerImage(filename string) (string, error) {
+func BuildDockerImage(location string, filename string) (string, error) {
 	// Input: filename string -> name of the Dockerfile to be built
 	// Output: (string, error) -> name of the image and the error (if any)
 	log.SetPrefix("docker build: ")
@@ -44,8 +44,7 @@ func buildDockerImage(filename string) (string, error) {
 	if !isDockerDaemonRunning() {
 		return "", errors.New("daemon not running")
 	}
-
-	command := "build -t " + name + " ./Dockerfiles/Dockerfile-" + filename
+	command := fmt.Sprintf("docker build -t %s -f %s/%s .", name, location, filename)
 	out, err := systemcaller.RunSystemCommand(command)
 	if err != nil || !wasImageBuilt(out) {
 		log.Fatal(err)
@@ -55,7 +54,7 @@ func buildDockerImage(filename string) (string, error) {
 	return name, nil
 }
 
-func runDockerImage(name string) error {
+func RunDockerImage(name string) error {
 	// Input: name string -> name of the image to be run
 	// Output: error -> errors (if any)
 	log.SetPrefix("docker run: ")
@@ -63,26 +62,25 @@ func runDockerImage(name string) error {
 		log.Fatal("daemon not running")
 		return errors.New("docker daemon is not running")
 	}
-	command := "run -d --rm --name " + name
+	command := fmt.Sprintf("docker run -d --rm --name=%s %s", name, name)
 	out, err := systemcaller.RunSystemCommand(command)
 	if err != nil || !isDockerContainerRunning(out) {
 		log.Fatal(err)
 		return errors.New("error encountered while running the dockerfile")
 	}
-	fmt.Println(out)
 	log.Print(out)
 	return nil
 }
 
-func RunDockerfile(filename string) error {
+func RunDockerfile(location string, filename string) error {
 	// Input: name string -> name of the dockefile to be executed
 	// Output: error -> errors (if any)
-	image, err := buildDockerImage(filename)
+	image, err := BuildDockerImage(location, filename)
 	if err != nil {
 		log.Fatal(err)
 		return errors.New(err.Error())
 	}
-	runnerErr := runDockerImage(image)
+	runnerErr := RunDockerImage(image)
 	if runnerErr != nil {
 		log.Fatal(runnerErr)
 		return errors.New(runnerErr.Error())
