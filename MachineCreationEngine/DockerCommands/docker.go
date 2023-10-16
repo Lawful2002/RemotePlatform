@@ -55,22 +55,22 @@ func buildDockerImage(location string, filename string) (string, error) {
 	return name, nil
 }
 
-func runDockerImage(name string) error {
+func runDockerImage(name string) (string, error) {
 	// Input: name string -> name of the image to be run
 	// Output: error -> errors (if any)
 	log.SetPrefix("docker run: ")
 	if !isDockerDaemonRunning() {
 		log.Fatal("daemon not running")
-		return errors.New("docker daemon is not running")
+		return "", errors.New("docker daemon is not running")
 	}
 	command := fmt.Sprintf("docker run -d --rm --name=%s %s", name, name)
 	out, err := systemcaller.RunSystemCommand(command)
 	if err != nil || !isDockerContainerRunning(out) {
 		log.Fatal(err)
-		return errors.New("error encountered while running the dockerfile")
+		return "", errors.New("error encountered while running the dockerfile")
 	}
 	log.Print(out)
-	return nil
+	return name, nil
 }
 
 func StopDockerContainer(name string) error {
@@ -91,20 +91,20 @@ func StopDockerContainer(name string) error {
 	return nil
 }
 
-func RunDockerfile(location string, filename string) error {
+func RunDockerfile(location string, filename string) (string, error) {
 	// Input: location string -> location of the directory containing dockerfile
 	// Input: filename string -> filename of the dockerfile
 	// Output: error -> errors (if any)
 	image, err := buildDockerImage(location, filename)
 	if err != nil {
 		log.Fatal(err)
-		return errors.New(err.Error())
+		return "", errors.New(err.Error())
 	}
-	runnerErr := runDockerImage(image)
+	name, runnerErr := runDockerImage(image)
 	if runnerErr != nil {
 		log.Fatal(runnerErr)
-		return errors.New(runnerErr.Error())
+		return "", errors.New(runnerErr.Error())
 	}
 
-	return nil
+	return name, nil
 }
