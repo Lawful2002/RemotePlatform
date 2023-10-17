@@ -4,4 +4,5 @@ use (
 	./Main
 	./DockerCommands
 	./SystemCaller
+	./CRON
 )

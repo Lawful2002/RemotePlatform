@@ -1,10 +1,9 @@
 package main
 
 import (
-	"docker"
-	"fmt"
+	"cron"
 )
 
 func main() {
-	fmt.Println(docker.StopDockerContainer("396299200-1298498081"))
+	cron.RunCronJob()
 }
