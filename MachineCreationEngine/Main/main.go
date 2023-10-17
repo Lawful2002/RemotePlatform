@@ -1,10 +1,9 @@
 package main
 
 import (
-	"docker"
-	"fmt"
+	"cron"
 )
 
 func main() {
-	fmt.Println(docker.RunDockerfile("./Dockerfiles", "test.Dockerfile"))
+	cron.RunCronJob()
 }
